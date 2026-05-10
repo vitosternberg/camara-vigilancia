@@ -97,7 +97,7 @@ def procesar_seguridad_poc(nombre):
 
 def cargar_rostros():
     logger.info("Iniciando carga de base de datos de rostros...")
-    ruta_fotos = os.path.join(BASE_DIR, "todos")
+    ruta_fotos = os.path.abspath(os.path.join(os.path.dirname(__file__), '../fotos'))
     conocidos_encodings = []
     conocidos_nombres = []
     
