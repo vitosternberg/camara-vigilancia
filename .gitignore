@@ -1,0 +1,21 @@
+# Entornos virtuales
+venv/
+env/
+
+# Archivos cacheados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de macOS
+.DS_Store
+
+# Archivos de Log y Datos generados por la app
+*.log
+*.csv
+historial_seguridad_poc.csv
+sistema_vigilancia.log
+
+# Carpetas de base de datos de fotos (para proteger privacidad)
+todos/
+fotos/

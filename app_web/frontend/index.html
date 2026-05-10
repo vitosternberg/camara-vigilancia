@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vigilancia Pro - FastAPI</title>
+    <!-- Tailwind CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #1a202c; /* Fondo oscuro */
+            color: #f7fafc; /* Texto claro */
+            font-family: 'Inter', sans-serif;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .sidebar {
+            background-color: #2d3748;
+        }
+        .main-content {
+            background-color: #1a202c;
+        }
+        .card {
+            background-color: #2d3748;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-gray-900 shadow-md py-4 px-6 flex items-center justify-between">
+            <h1 class="text-3xl font-bold text-white">
+                <span class="text-green-500">🛡️</span> Vigilancia Pro <span class="text-green-500">FastAPI</span>
+            </h1>
+            <!-- Aquí irían botones de navegación o estado del sistema -->
+        </header>
+
+        <!-- Main Content Area -->
+        <div class="flex flex-1 p-6 gap-6">
+            <!-- Sidebar / Controls (Simulado) -->
+            <aside class="sidebar w-64 p-4 rounded-lg shadow-lg flex-shrink-0">
+                <h2 class="text-xl font-semibold mb-4 text-white">⚙️ Ajustes y Controles</h2>
+                <div class="space-y-4">
+                    <button id="btn-iniciar" onclick="iniciarMonitoreo()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition duration-200">
+                        ▶️ Iniciar Monitoreo
+                    </button>
+                    <button class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-200">
+                        🗑️ Limpiar Registros
+                    </button>
+                    <!-- Más controles aquí -->
+                </div>
+                <div class="mt-8">
+                    <h3 class="text-lg font-semibold text-white mb-2">Alertas Telegram</h3>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" class="form-checkbox text-green-500" checked>
+                        <span class="text-gray-300">Activas</span>
+                    </label>
+                </div>
+            </aside>
+
+            <!-- Video Feed & Dashboard -->
+            <main class="main-content flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Video Feed -->
+                <div class="md:col-span-2 card p-4 rounded-lg shadow-lg flex flex-col items-center justify-center">
+                    <h2 class="text-xl font-semibold mb-4 text-white">📷 Feed en Vivo</h2>
+                    <img id="feed_camara" src="" alt="Esperando inicio de cámara..." class="w-full h-auto rounded-lg border-2 border-gray-700 min-h-[240px] flex items-center justify-center text-gray-500 bg-gray-800">
+                    <p class="mt-2 text-gray-400 text-sm">Actualización en tiempo real desde la cámara.</p>
+                </div>
+
+                <!-- Live Dashboard -->
+                <div class="md:col-span-1 card p-4 rounded-lg shadow-lg flex flex-col">
+                    <h2 class="text-xl font-semibold mb-4 text-white">📊 Actividad Reciente</h2>
+                    <div class="space-y-4 flex-1">
+                        <!-- Métrica de ejemplo -->
+                        <div class="bg-gray-700 p-3 rounded-lg flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-400">Total Detectadas</p>
+                                <p id="stats-total" class="text-2xl font-bold text-green-400">0</p>
+                            </div>
+                            <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        </div>
+                        
+                        <!-- Lista de tarjetas de ejemplo (aquí se inyectarían dinámicamente) -->
+                        <div id="stats-list" class="flex flex-col gap-3 mt-4">
+                            <p class="text-gray-500 text-sm italic">Sin datos recientes...</p>
+                        </div>
+                    </div>
+                    <button class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200">
+                        Ver Historial Detallado
+                    </button>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        let intervaloStats;
+
+        function iniciarMonitoreo() {
+            const img = document.getElementById("feed_camara");
+            // Al inyectar el src, comienza la transmisión de video
+            img.src = "/video_feed";
+            document.getElementById("btn-iniciar").innerHTML = "🔄 Reiniciar Monitoreo";
+            
+            // Iniciar consulta de estadísticas en segundo plano
+            if (!intervaloStats) {
+                actualizarStats();
+                intervaloStats = setInterval(actualizarStats, 2000); // Consulta cada 2 segundos
+            }
+        }
+
+        async function actualizarStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                document.getElementById('stats-total').innerText = data.total;
+                
+                const listContainer = document.getElementById('stats-list');
+                if (data.recent && data.recent.length > 0) {
+                    listContainer.innerHTML = '';
+                    data.recent.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'bg-gray-800 border-l-4 border-green-500 rounded-lg p-3 flex items-center justify-between';
+                        div.innerHTML = `
+                            <div>
+                                <h4 class="text-white font-bold">${item.nombre}</h4>
+                                <p class="text-gray-400 text-xs">Última vista: ${item.ultima_vez}</p>
+                            </div>
+                            <span class="text-2xl font-bold text-green-400">${item.conteo}</span>
+                        `;
+                        listContainer.appendChild(div);
+                    });
+                }
+            } catch (error) {
+                console.error("Error al obtener estadísticas:", error);
+            }
+        }
+    </script>
+</body>
+</html>
