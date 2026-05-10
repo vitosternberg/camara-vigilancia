@@ -6,7 +6,7 @@ import face_recognition # Librería estándar de reconocimiento
 
 # Configuración de tu Reolink
 
-url = "rtsp://admin:Rafa2422!@192.168.100.182:9000/h264Preview_01_main"
+url = "rtsp://admin:TU_PASSWORD@192.168.100.182:9000/h264Preview_01_main"
 
 video_capture = cv2.VideoCapture(url)
 

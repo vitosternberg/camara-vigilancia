@@ -20,8 +20,8 @@ logging.basicConfig(
 logging.info("=== Iniciando Sistema de Vigilancia Pro ===")
 
 # --- 🔐 CONFIGURACIÓN DE SEGURIDAD (Tus credenciales validadas) ---
-TELEGRAM_TOKEN = "8737879930:AAHBqVqTvEHS-sXsSQyFG-xfwboottjFjYw"
-TELEGRAM_CHAT_ID = "5835369596"
+TELEGRAM_TOKEN = "TU_TOKEN_TELEGRAM" # Recuerda no subir tus tokens reales
+TELEGRAM_CHAT_ID = "TU_CHAT_ID"
 ARCHIVO_HISTORICO = "historial_seguridad_poc.csv"
 
 # --- 📂 INICIALIZACIÓN DE SISTEMA ---

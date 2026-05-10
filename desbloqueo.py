@@ -4,7 +4,7 @@ import json
 # --- CONFIGURACIÓN DE TU CÁMARA ---
 IP_CAMARA = "192.168.100.182"  # <--- Cambia por la IP real de tu Reolink
 USUARIO = "admin"
-PASSWORD = "Rafa2422!"     # <--- Tu contraseña de la cámara
+PASSWORD = "TU_PASSWORD"     # <--- Tu contraseña de la cámara
 
 # URL para la API de Reolink
 #url = f"http://{IP_CAMARA}/cgi-bin/api.cgi?user={USUARIO}&password={PASSWORD}"

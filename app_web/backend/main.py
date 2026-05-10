@@ -28,8 +28,8 @@ logger = logging.getLogger(__name__)
 logger.info("=== Iniciando Backend FastAPI de Vigilancia ===")
 
 # --- 🔐 CONFIGURACIÓN DE SEGURIDAD E INTELIGENCIA ---
-TELEGRAM_TOKEN = "8737879930:AAHBqVqTvEHS-sXsSQyFG-xfwboottjFjYw"
-TELEGRAM_CHAT_ID = "5835369596"
+TELEGRAM_TOKEN = "TU_TOKEN_TELEGRAM" # Recuerda no subir tus tokens reales
+TELEGRAM_CHAT_ID = "TU_CHAT_ID"
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
 ARCHIVO_HISTORICO = os.path.join(BASE_DIR, "historial_seguridad_poc.csv")
 
