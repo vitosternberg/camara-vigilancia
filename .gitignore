@@ -19,3 +19,6 @@ sistema_vigilancia.log
 # Carpetas de base de datos de fotos (para proteger privacidad)
 todos/
 fotos/
+
+# Variables de entorno (Credenciales reales)
+.env

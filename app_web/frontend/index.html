@@ -33,11 +33,32 @@
             <h1 class="text-3xl font-bold text-white">
                 <span class="text-green-500">🛡️</span> Vigilancia Pro <span class="text-green-500">FastAPI</span>
             </h1>
-            <!-- Aquí irían botones de navegación o estado del sistema -->
+            
+            <!-- Zona de Login en Navbar -->
+            <div id="nav-login" class="flex items-center gap-3">
+                <form id="form-login" onsubmit="submitLogin(event); return false;" class="flex items-center gap-2 m-0">
+                    <input type="text" id="login_username" placeholder="Usuario (ej. admin)" required class="bg-gray-800 text-white border border-gray-700 rounded py-1 px-3 text-sm focus:outline-none focus:border-blue-500 w-36 md:w-48">
+                    <input type="password" id="login_password" placeholder="Contraseña" required class="bg-gray-800 text-white border border-gray-700 rounded py-1 px-3 text-sm focus:outline-none focus:border-blue-500 w-36 md:w-48">
+                    <button type="submit" id="btn-login" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-1.5 px-4 rounded shadow transition">Entrar</button>
+                </form>
+                <span id="login-error" class="text-red-500 text-sm hidden font-bold">❌ Error</span>
+            </div>
+
+            <div id="user-info" class="hidden flex items-center gap-4">
+                <span class="text-gray-300 text-sm">👤 <b id="display-user" class="text-white"></b> (<span id="display-role" class="text-blue-400 capitalize"></span>)</span>
+                <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 px-3 rounded shadow transition">Cerrar Sesión</button>
+            </div>
         </header>
 
+        <!-- Mensaje de Bienvenida / Sistema Bloqueado -->
+        <div id="welcome-message" class="flex flex-1 items-center justify-center flex-col text-gray-500">
+            <span class="text-6xl mb-4">🔒</span>
+            <h2 class="text-2xl font-bold text-gray-300">Sistema Bloqueado</h2>
+            <p class="mt-2 text-sm">Ingresa tus credenciales en la barra superior para acceder al monitoreo.</p>
+        </div>
+
         <!-- Main Content Area -->
-        <div class="flex flex-1 p-6 gap-6">
+        <div id="main-app-content" class="flex flex-1 p-6 gap-6 hidden">
             <!-- Sidebar / Controls (Simulado) -->
             <aside class="sidebar w-64 p-4 rounded-lg shadow-lg flex-shrink-0">
                 <h2 class="text-xl font-semibold mb-4 text-white">⚙️ Ajustes y Controles</h2>
@@ -45,16 +66,38 @@
                     <button id="btn-iniciar" onclick="iniciarMonitoreo()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition duration-200">
                         ▶️ Iniciar Monitoreo
                     </button>
-                    <button class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-200">
+                    <button id="btn-limpiar" onclick="limpiarRegistros()" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-200">
                         🗑️ Limpiar Registros
+                    </button>
+                    <button id="btn-agregar" onclick="abrirModalUpload()" class="w-full bg-blue-700 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-200 shadow-lg border border-blue-500">
+                        ➕ Agregar Persona
+                    </button>
+                    <button id="btn-bd" onclick="abrirModalGestion()" class="w-full bg-purple-700 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded transition duration-200 shadow-lg border border-purple-500 mt-2">
+                        👥 Base de Datos
+                    </button>
+                    <button id="btn-logs" onclick="abrirModalLogs()" class="w-full bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded transition duration-200 shadow-lg border border-yellow-500 mt-2 hidden">
+                        📄 Ver Logs del Sistema
                     </button>
                     <!-- Más controles aquí -->
                 </div>
-                <div class="mt-8">
-                    <h3 class="text-lg font-semibold text-white mb-2">Alertas Telegram</h3>
-                    <label class="flex items-center space-x-2">
-                        <input type="checkbox" class="form-checkbox text-green-500" checked>
-                        <span class="text-gray-300">Activas</span>
+                <div id="section-inteligencia" class="mt-8 space-y-4">
+                    <h3 class="text-lg font-semibold text-white mb-2">⚙️ Inteligencia</h3>
+                    
+                    <!-- Slider de Enfriamiento -->
+                    <div>
+                        <label class="text-gray-300 text-sm font-bold mb-1 block">Enfriamiento: <span id="val_enfriamiento" class="text-green-400">3</span> min</label>
+                        <input type="range" id="minutos_enfriamiento" min="1" max="30" value="3" class="w-full cursor-pointer" oninput="document.getElementById('val_enfriamiento').innerText = this.value; guardarConfiguracion()">
+                    </div>
+                    
+                    <!-- Input de Umbral de Alertas -->
+                    <div>
+                        <label class="text-gray-300 text-sm font-bold mb-1 block">Umbral de Alerta (veces):</label>
+                        <input type="number" id="umbral_alerta" min="1" value="3" class="w-full bg-gray-700 text-white border border-gray-600 rounded py-1 px-2 focus:outline-none focus:border-green-500" onchange="guardarConfiguracion()">
+                    </div>
+                    
+                    <label class="flex items-center space-x-2 mt-4 cursor-pointer">
+                        <input type="checkbox" id="alertas_activas" class="form-checkbox text-green-500 w-5 h-5 rounded focus:ring-0 cursor-pointer" checked onchange="guardarConfiguracion()">
+                        <span class="text-gray-300 font-bold text-sm">🔔 Alertas Telegram</span>
                     </label>
                 </div>
             </aside>
@@ -86,21 +129,280 @@
                             <p class="text-gray-500 text-sm italic">Sin datos recientes...</p>
                         </div>
                     </div>
-                    <button class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200">
+                    <button onclick="abrirModalTarjetas()" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200">
                         Ver Historial Detallado
                     </button>
                 </div>
             </main>
         </div>
     </div>
+    
+    <!-- Modal Tarjetas Detalladas (Oculto por defecto) -->
+    <div id="modal-tarjetas" class="fixed inset-0 bg-black bg-opacity-80 hidden flex items-center justify-center z-50">
+        <div class="bg-gray-800 w-11/12 md:w-1/2 lg:w-2/5 rounded-xl shadow-2xl p-6 relative max-h-[85vh] flex flex-col border border-gray-700">
+            <button onclick="cerrarModalTarjetas()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-gray-700 hover:bg-red-500 rounded-full p-1 transition duration-200">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                <span class="text-green-500">🪪</span> Identidades Confirmadas
+            </h2>
+            <div id="contenedor-modal-tarjetas" class="overflow-y-auto pr-2 flex-1 space-y-4">
+                <!-- Las tarjetas se inyectarán aquí -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Agregar Persona -->
+    <div id="modal-upload" class="fixed inset-0 bg-black bg-opacity-80 hidden flex items-center justify-center z-50">
+        <div class="bg-gray-800 w-11/12 md:w-1/2 lg:w-1/3 rounded-xl shadow-2xl p-6 relative">
+            <button onclick="cerrarModalUpload()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-gray-700 hover:bg-red-500 rounded-full p-1 transition duration-200">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <span class="text-blue-500">➕</span> Registrar Nueva Persona
+            </h2>
+            <form id="form-upload" onsubmit="submitNuevaPersona(event)" class="space-y-4">
+                <div>
+                    <label class="text-gray-300 text-sm font-bold mb-1 block">Nombre y Apellido</label>
+                    <input type="text" name="nombre" required class="w-full bg-gray-700 text-white border border-gray-600 rounded py-2 px-3 focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="text-gray-300 text-sm font-bold mb-1 block">Edad</label>
+                    <input type="number" name="edad" required min="1" max="120" class="w-full bg-gray-700 text-white border border-gray-600 rounded py-2 px-3 focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="text-gray-300 text-sm font-bold mb-1 block">Peligrosidad</label>
+                    <select name="peligrosidad" class="w-full bg-gray-700 text-white border border-gray-600 rounded py-2 px-3 focus:outline-none focus:border-blue-500">
+                        <option value="Baja">Baja</option>
+                        <option value="Media">Media</option>
+                        <option value="Alta">Alta</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-gray-300 text-sm font-bold mb-1 block">Acciones a tomar</label>
+                    <select name="accion" class="w-full bg-gray-700 text-white border border-gray-600 rounded py-2 px-3 focus:outline-none focus:border-blue-500">
+                        <option value="No hacer nada">No hacer nada</option>
+                        <option value="Enviar notificación">Enviar notificación</option>
+                        <option value="Llamar a seguridad">Llamar a seguridad</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-gray-300 text-sm font-bold mb-1 block">Foto (Imagen)</label>
+                    <input type="file" name="foto" accept="image/*" required class="w-full bg-gray-700 text-white border border-gray-600 rounded py-2 px-3 focus:outline-none focus:border-blue-500 text-sm">
+                </div>
+                <button type="submit" id="btn-submit-upload" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200">
+                    Guardar y Entrenar IA
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Gestionar Personas -->
+    <div id="modal-gestion" class="fixed inset-0 bg-black bg-opacity-80 hidden flex items-center justify-center z-50">
+        <div class="bg-gray-800 w-11/12 md:w-3/4 lg:w-2/3 rounded-xl shadow-2xl p-6 relative max-h-[85vh] flex flex-col border border-gray-700">
+            <button onclick="cerrarModalGestion()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-gray-700 hover:bg-red-500 rounded-full p-1 transition duration-200">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                <span class="text-purple-500">👥</span> Base de Datos de Personas
+            </h2>
+            <div id="contenedor-personas" class="overflow-y-auto pr-2 flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Personas se inyectarán aquí -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Persona -->
+    <div id="modal-editar" class="fixed inset-0 bg-black bg-opacity-80 hidden flex items-center justify-center z-50" style="z-index: 60;">
+        <div class="bg-gray-800 w-11/12 md:w-1/2 lg:w-1/3 rounded-xl shadow-2xl p-6 relative border border-gray-600">
+            <button onclick="cerrarModalEditar()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-gray-700 hover:bg-red-500 rounded-full p-1 transition duration-200">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <span class="text-blue-500">✏️</span> Editar a <span id="edit_nombre_display" class="text-gray-300 ml-1"></span>
+            </h2>
+            <form id="form-editar" onsubmit="submitEditarPersona(event)" class="space-y-4">
+                <input type="hidden" id="edit_nombre_original">
+                <div>
+                    <label class="text-gray-300 text-sm font-bold mb-1 block">Nombre</label>
+                    <input type="text" id="edit_nuevo_nombre" required class="w-full bg-gray-700 text-white border border-gray-600 rounded py-2 px-3 focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="text-gray-300 text-sm font-bold mb-1 block">Edad</label>
+                    <input type="number" id="edit_edad" required min="1" max="120" class="w-full bg-gray-700 text-white border border-gray-600 rounded py-2 px-3 focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="text-gray-300 text-sm font-bold mb-1 block">Peligrosidad</label>
+                    <select id="edit_peligrosidad" class="w-full bg-gray-700 text-white border border-gray-600 rounded py-2 px-3 focus:outline-none focus:border-blue-500">
+                        <option value="Baja">Baja</option>
+                        <option value="Media">Media</option>
+                        <option value="Alta">Alta</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-gray-300 text-sm font-bold mb-1 block">Acciones a tomar</label>
+                    <select id="edit_accion" class="w-full bg-gray-700 text-white border border-gray-600 rounded py-2 px-3 focus:outline-none focus:border-blue-500">
+                        <option value="No hacer nada">No hacer nada</option>
+                        <option value="Enviar notificación">Enviar notificación</option>
+                        <option value="Llamar a seguridad">Llamar a seguridad</option>
+                    </select>
+                </div>
+                <button type="submit" id="btn-submit-editar" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200">
+                    Guardar Cambios
+                </button>
+            </form>
+            
+            <!-- Zona de Peligro: Eliminar (Solo Admin) -->
+            <div id="section-eliminar" class="mt-6 border-t border-red-800 pt-4 hidden">
+                <h3 class="text-red-500 font-bold mb-2 text-sm">🗑️ Zona de Peligro: Eliminar Persona</h3>
+                <div class="bg-red-900 bg-opacity-20 p-3 rounded border border-red-800">
+                    <p class="text-[11px] text-gray-300 mb-2">Debes adjuntar un correo o documento de autorización superior antes de eliminar a alguien.</p>
+                    <input type="file" id="archivo_autorizacion" class="w-full bg-gray-800 text-white border border-gray-700 rounded py-1 px-2 text-xs mb-2 cursor-pointer" accept=".pdf,.png,.jpg,.jpeg,.eml,.msg">
+                    <button type="button" onclick="submitEliminarPersona()" class="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-1.5 px-4 rounded transition duration-200 text-sm">
+                        Adjuntar y Eliminar Definitivamente
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Logs -->
+    <div id="modal-logs" class="fixed inset-0 bg-black bg-opacity-80 hidden flex items-center justify-center z-50" style="z-index: 70;">
+        <div class="bg-gray-800 w-11/12 md:w-3/4 lg:w-2/3 rounded-xl shadow-2xl p-6 relative max-h-[85vh] flex flex-col border border-gray-700">
+            <button onclick="cerrarModalLogs()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-gray-700 hover:bg-red-500 rounded-full p-1 transition duration-200">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h2 class="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <span class="text-yellow-500">📄</span> Logs del Sistema
+            </h2>
+            <div class="bg-black p-4 rounded text-green-400 font-mono text-xs overflow-y-auto flex-1 whitespace-pre-wrap" id="contenedor-logs">
+                Cargando logs...
+            </div>
+            <button onclick="cargarLogs()" class="mt-4 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-200 w-full md:w-auto self-end">
+                🔄 Actualizar Logs
+            </button>
+        </div>
+    </div>
 
     <script>
         let intervaloStats;
+        let todasLasTarjetas = []; // Guardará todas las detecciones para el modal
+
+        let token = localStorage.getItem('token');
+        let role = localStorage.getItem('role');
+        let username = localStorage.getItem('username');
+
+        function checkAuth() {
+            if (!token || token === 'null' || token === 'undefined') {
+                document.getElementById('nav-login').classList.remove('hidden');
+                document.getElementById('user-info').classList.add('hidden');
+                document.getElementById('main-app-content').classList.add('hidden');
+                document.getElementById('welcome-message').classList.remove('hidden');
+            } else {
+                document.getElementById('nav-login').classList.add('hidden');
+                document.getElementById('user-info').classList.remove('hidden');
+                document.getElementById('main-app-content').classList.remove('hidden');
+                document.getElementById('welcome-message').classList.add('hidden');
+                document.getElementById('display-user').innerText = username;
+                document.getElementById('display-role').innerText = role;
+                aplicarPermisos();
+                cargarConfiguracion();
+            }
+        }
+        
+        async function submitLogin(e) {
+            if(e) e.preventDefault();
+            const formData = new URLSearchParams();
+            formData.append('username', document.getElementById('login_username').value.trim());
+            formData.append('password', document.getElementById('login_password').value.trim());
+            const btn = document.getElementById('btn-login');
+            btn.innerText = "...";
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch('/api/login', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData.toString()
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    token = data.access_token; role = data.role; username = document.getElementById('login_username').value;
+                    localStorage.setItem('token', token); localStorage.setItem('role', role); localStorage.setItem('username', username);
+                    document.getElementById('login-error').classList.add('hidden');
+                    document.getElementById('login_password').value = "";
+                    checkAuth();
+                } else {
+                    const errorData = await res.json();
+                    document.getElementById('login-error').innerText = "❌ " + (errorData.detail || "Error de credenciales");
+                    document.getElementById('login-error').classList.remove('hidden');
+                }
+            } catch (error) {
+                document.getElementById('login-error').innerText = "❌ Error de red";
+                document.getElementById('login-error').classList.remove('hidden');
+            } finally {
+                btn.innerText = "Entrar"; btn.disabled = false;
+            }
+        }
+        
+        function logout() {
+            localStorage.clear();
+            token = null; role = null; username = null;
+            document.getElementById("feed_camara").src = "";
+            document.getElementById("btn-iniciar").innerHTML = "▶️ Iniciar Monitoreo";
+            if (intervaloStats) { clearInterval(intervaloStats); intervaloStats = null; }
+            checkAuth();
+        }
+        
+        function aplicarPermisos() {
+            const esAdmin = (role === 'admin');
+            const esGuardia = (role === 'guardia');
+            
+            document.getElementById('btn-limpiar').classList.toggle('hidden', !esAdmin);
+            document.getElementById('btn-agregar').classList.toggle('hidden', !(esAdmin || esGuardia));
+            document.getElementById('btn-bd').classList.toggle('hidden', !(esAdmin || esGuardia));
+            document.getElementById('section-inteligencia').classList.toggle('hidden', !esAdmin);
+            document.getElementById('section-eliminar').classList.toggle('hidden', !esAdmin);
+            document.getElementById('btn-logs').classList.toggle('hidden', !esAdmin);
+        }
+
+        // Cargar y guardar configuración
+        async function cargarConfiguracion() {
+            try {
+                const res = await fetch('/api/settings', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (res.status === 401 || res.status === 403) {
+                    logout();
+                    return;
+                }
+                const data = await res.json();
+                document.getElementById('minutos_enfriamiento').value = data.minutos_enfriamiento;
+                document.getElementById('val_enfriamiento').innerText = data.minutos_enfriamiento;
+                document.getElementById('umbral_alerta').value = data.umbral_alerta;
+                document.getElementById('alertas_activas').checked = data.alertas_activas;
+            } catch (error) {
+                console.error("Error al cargar configuración", error);
+            }
+        }
+
+        async function guardarConfiguracion() {
+            const payload = {
+                minutos_enfriamiento: parseInt(document.getElementById('minutos_enfriamiento').value),
+                umbral_alerta: parseInt(document.getElementById('umbral_alerta').value),
+                alertas_activas: document.getElementById('alertas_activas').checked
+            };
+            await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify(payload)
+            });
+        }
 
         function iniciarMonitoreo() {
             const img = document.getElementById("feed_camara");
             // Al inyectar el src, comienza la transmisión de video
-            img.src = "/video_feed";
+            img.src = "/video_feed?token=" + token;
             document.getElementById("btn-iniciar").innerHTML = "🔄 Reiniciar Monitoreo";
             
             // Iniciar consulta de estadísticas en segundo plano
@@ -112,10 +414,15 @@
 
         async function actualizarStats() {
             try {
-                const response = await fetch('/api/stats');
+                const response = await fetch('/api/stats', { headers: { 'Authorization': 'Bearer ' + token }});
+                if (response.status === 401 || response.status === 403) {
+                    logout();
+                    return;
+                }
                 const data = await response.json();
                 
                 document.getElementById('stats-total').innerText = data.total;
+                todasLasTarjetas = data.all || []; // Guardar los datos completos en memoria
                 
                 const listContainer = document.getElementById('stats-list');
                 if (data.recent && data.recent.length > 0) {
@@ -137,6 +444,234 @@
                 console.error("Error al obtener estadísticas:", error);
             }
         }
+        
+        function abrirModalTarjetas() {
+            const modal = document.getElementById('modal-tarjetas');
+            const contenedor = document.getElementById('contenedor-modal-tarjetas');
+            
+            contenedor.innerHTML = ''; // Limpiar anterior
+            
+            if (todasLasTarjetas.length === 0) {
+                contenedor.innerHTML = '<p class="text-gray-400 text-center mt-10 italic">No hay registros de identidades confirmadas aún.</p>';
+            } else {
+                todasLasTarjetas.forEach(item => {
+                    contenedor.innerHTML += `
+                        <div class="bg-gray-900 border-l-4 border-green-500 rounded-lg shadow-lg p-4 flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="relative w-14 h-14 rounded-full overflow-hidden border-2 border-green-500 flex-shrink-0 bg-gray-800 flex items-center justify-center shadow">
+                                    <img src="/foto/${encodeURIComponent(item.nombre)}?token=${token}" alt="${item.nombre}" class="w-full h-full object-cover z-10 relative" onerror="this.style.display='none'">
+                                    <svg class="w-7 h-7 text-green-400 absolute z-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-bold text-lg m-0">${item.nombre}</h4>
+                                    <p class="text-gray-400 text-xs m-0 mt-1 uppercase tracking-wider">Identidad Confirmada</p>
+                                    <p class="text-gray-500 text-[10px] mt-1 italic">Última vez: ${item.ultima_vez}</p>
+                                </div>
+                            </div>
+                            <div class="bg-gray-800 border border-gray-700 rounded px-4 py-2 text-center shadow-inner">
+                                <span class="text-3xl font-black text-green-400 leading-none">${item.conteo}</span>
+                                <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Veces</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function cerrarModalTarjetas() {
+            document.getElementById('modal-tarjetas').classList.add('hidden');
+        }
+        
+        // Logica Formulario Subir Persona
+        function abrirModalUpload() {
+            document.getElementById('modal-upload').classList.remove('hidden');
+        }
+        function cerrarModalUpload() {
+            document.getElementById('modal-upload').classList.add('hidden');
+        }
+        
+        async function submitNuevaPersona(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const btn = document.getElementById('btn-submit-upload');
+            const originalText = btn.innerText;
+            btn.innerText = "Guardando...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/upload_person', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token },
+                    body: formData
+                });
+                const result = await response.json();
+                if(response.ok) {
+                    alert("✅ " + result.message);
+                    cerrarModalUpload();
+                    form.reset();
+                } else {
+                    alert("❌ Error al guardar persona.");
+                }
+            } catch (error) {
+                console.error("Error al subir persona:", error);
+                alert("❌ Error de red");
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+        
+        // Logica Gestion de Personas
+        async function abrirModalGestion() {
+            document.getElementById('modal-gestion').classList.remove('hidden');
+            await cargarPersonasBaseDatos();
+        }
+        function cerrarModalGestion() {
+            document.getElementById('modal-gestion').classList.add('hidden');
+        }
+        
+        async function cargarPersonasBaseDatos() {
+            try {
+                const res = await fetch('/api/people', { headers: { 'Authorization': 'Bearer ' + token }});
+                const data = await res.json();
+                const container = document.getElementById('contenedor-personas');
+                container.innerHTML = '';
+                if(data.personas.length === 0) {
+                    container.innerHTML = '<p class="text-gray-400 col-span-2 text-center mt-10">No hay personas registradas en la base de datos.</p>';
+                    return;
+                }
+                data.personas.forEach(p => {
+                    const colorBorde = p.peligrosidad === 'Alta' ? 'border-red-500' : (p.peligrosidad === 'Media' ? 'border-yellow-500' : 'border-green-500');
+                    container.innerHTML += `
+                        <div class="bg-gray-900 border border-gray-700 rounded-lg p-4 flex items-center justify-between shadow-lg">
+                            <div class="flex items-center gap-4">
+                                <img src="/foto/${encodeURIComponent(p.nombre)}?token=${token}" class="w-14 h-14 rounded-full object-cover border-2 ${colorBorde}" onerror="this.style.display='none'">
+                                <div>
+                                    <h4 class="text-white font-bold text-md">${p.nombre}</h4>
+                                    <p class="text-[11px] text-gray-400 mt-1">Edad: ${p.edad} | Riesgo: <span class="${p.peligrosidad === 'Alta' ? 'text-red-400 font-bold' : 'text-gray-400'}">${p.peligrosidad}</span></p>
+                                    <p class="text-[11px] text-blue-400 mt-1">${p.accion}</p>
+                                </div>
+                            </div>
+                            <button onclick="abrirModalEditar('${p.nombre}', ${p.edad === 'N/A' ? 0 : p.edad}, '${p.peligrosidad}', '${p.accion}')" class="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded shadow transition">
+                                ✏️ Editar
+                            </button>
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                console.error("Error al cargar la base de datos:", e);
+            }
+        }
+
+        function abrirModalEditar(nombre, edad, peligrosidad, accion) {
+            document.getElementById('edit_nombre_display').innerText = nombre;
+            document.getElementById('edit_nombre_original').value = nombre;
+            document.getElementById('edit_nuevo_nombre').value = nombre;
+            document.getElementById('edit_edad').value = edad || '';
+            document.getElementById('edit_peligrosidad').value = peligrosidad;
+            document.getElementById('edit_accion').value = accion;
+            document.getElementById('archivo_autorizacion').value = ""; // Limpiar archivo anterior
+            document.getElementById('modal-editar').classList.remove('hidden');
+        }
+        function cerrarModalEditar() {
+            document.getElementById('modal-editar').classList.add('hidden');
+        }
+
+        async function submitEditarPersona(event) {
+            event.preventDefault();
+            const payload = {
+                nombre: document.getElementById('edit_nombre_original').value,
+                nuevo_nombre: document.getElementById('edit_nuevo_nombre').value,
+                edad: parseInt(document.getElementById('edit_edad').value) || 0,
+                peligrosidad: document.getElementById('edit_peligrosidad').value,
+                accion: document.getElementById('edit_accion').value
+            };
+            const btn = document.getElementById('btn-submit-editar');
+            btn.innerText = "Guardando..."; btn.disabled = true;
+            try {
+                const res = await fetch('/api/edit_person', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify(payload)
+                });
+                if(res.ok) {
+                    cerrarModalEditar();
+                    cargarPersonasBaseDatos(); // Refrescar la lista automáticamente
+                } else {
+                    alert('❌ Error al actualizar datos.');
+                }
+            } catch (e) {
+                console.error("Error al editar persona:", e);
+            } finally {
+                btn.innerText = "Guardar Cambios"; btn.disabled = false;
+            }
+        }
+        
+        async function submitEliminarPersona() {
+            const nombre = document.getElementById('edit_nombre_original').value;
+            const fileInput = document.getElementById('archivo_autorizacion');
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert("❌ ACCESO DENEGADO: Debes adjuntar un documento de autorización.");
+                return;
+            }
+            if (!confirm(`¿Estás seguro de eliminar a ${nombre}? Se guardará una copia de la autorización y la acción no se puede deshacer.`)) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('nombre', nombre);
+            formData.append('autorizacion', fileInput.files[0]);
+
+            try {
+                const res = await fetch('/api/delete_person', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token },
+                    body: formData
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    alert("✅ " + result.message);
+                    cerrarModalEditar();
+                    cargarPersonasBaseDatos();
+                } else {
+                    alert("❌ Error: " + (result.detail || "No se pudo eliminar."));
+                }
+            } catch (error) {
+                console.error("Error al eliminar:", error);
+                alert("❌ Error de red.");
+            }
+        }
+
+        // Logica Visor de Logs
+        function abrirModalLogs() {
+            document.getElementById('modal-logs').classList.remove('hidden');
+            cargarLogs();
+        }
+        function cerrarModalLogs() {
+            document.getElementById('modal-logs').classList.add('hidden');
+        }
+        async function cargarLogs() {
+            const contenedor = document.getElementById('contenedor-logs');
+            contenedor.innerText = "Cargando logs...";
+            try {
+                const res = await fetch('/api/logs?lines=100', { headers: { 'Authorization': 'Bearer ' + token }});
+                const data = await res.json();
+                if(res.ok) {
+                    contenedor.innerText = data.logs || "El log está vacío.";
+                    contenedor.scrollTop = contenedor.scrollHeight;
+                } else {
+                    contenedor.innerText = "Error: " + (data.detail || "No se pudieron cargar los logs.");
+                }
+            } catch (error) {
+                contenedor.innerText = "Error de red al intentar conectar con el servidor.";
+            }
+        }
+
+        // Ejecutar al iniciar
+        document.addEventListener("DOMContentLoaded", checkAuth);
     </script>
 </body>
 </html>
